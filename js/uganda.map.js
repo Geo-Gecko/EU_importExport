@@ -131,7 +131,7 @@
 		});
 
 		legendSvg.selectAll('.legend-title')
-			.data(["Euros"])
+			.data(["Legend: Amounts in Euros"])
 			.enter()
 			.append('text')
 			.attr('class', 'legend-title')
@@ -365,10 +365,10 @@
 						d.properties._sumOfExports = sumOfExports;
 						d.properties._sumOfImports = sumOfImports;
 
-						domain[0] = sumOfExports < domain[0] ? sumOfExports :
+						domain[0] = sumOfImports < domain[0] ? sumOfImports :
 						domain[
 							0];
-						domain[1] = sumOfExports > domain[1] ? sumOfExports :
+						domain[1] = sumOfImports > domain[1] ? sumOfImports :
 						domain[
 							1];
 						color.domain(domain);
@@ -397,8 +397,6 @@
 						i++
 					}
 					
-					console.log(d);
-
 					str = str + "<br><tr><th>Sum of Imports:</th> <th><b>" + myFormat(d.properties._sumOfImports) + " Euros</b></th></tr>" +
 						"<br><tr><th>Sum of Exports:</th> <th><b>" + myFormat(d.properties._sumOfExports) + " Euros</b></th></tr></div>";
 				}
@@ -472,6 +470,7 @@
 			whichPage = "imports";
 			refreshCounts();
 			updateLeftPanel(districtList, sectorList, agencyList, donorList, actorTypeList, dataset);
+			domain = [+Infinity, -Infinity];
 			ugandaPath.each(function (d) {
 				datasetNest.map(function (c) {
 					if (c.key === d.properties.CNTRY_NAME) {
@@ -511,7 +510,9 @@
 			})
 				.style("fill", function (d) {
 				return d.properties._sumOfImports ? color(d.properties._sumOfImports) : "#00000000"; //#3CB371
-			})
+			});
+			
+			addLegend(domain, color);
 		})
 
 
@@ -519,6 +520,7 @@
 			whichPage = "exports";
 			refreshCounts();
 			updateLeftPanel(districtList, sectorList, agencyList, donorList, actorTypeList, dataset);
+			domain = [+Infinity, -Infinity];
 			ugandaPath.each(function (d) {
 				datasetNest.map(function (c) {
 					if (c.key === d.properties.CNTRY_NAME) {
@@ -553,60 +555,16 @@
 						domain[
 							1];
 						color.domain(domain);
+						
 					}
 				});
 			})
 				.style("fill", function (d) {
 				return d.properties._sumOfExports ? color(d.properties._sumOfExports) : "#00000000"; //#3CB371
-			})
-		})
-
-
-		/*
-		function refreshMap() {
-			refreshCounts();
-			ugandaPath.style("opacity", function (a) {
-				a.properties._selected = false;
-				return 1;
-			});
-
-			d3.select("#district-list").selectAll("p").style("background", "transparent");
-			d3.select("#sector-list").selectAll("p").style("background", "transparent");
-			d3.select("#actor-type-list").selectAll("p").style("background", "transparent");
-			d3.select("#agency-list").selectAll("p").style("background", "transparent");
-			d3.select("#donor-list").selectAll("p").style("background", "transparent");
-
-			updateLeftPanel(districtList, sectorList, agencyList, donorList, actorTypeList, dataset);
-			var domain = [+Infinity, -Infinity];
-			ugandaPath.each(function (d) {
-				datasetNest.map(function (c) {
-					if (c.key === d.properties.CNTRY_NAME) {
-						d.properties._sectorList = d3.nest().key(function (a) {
-							return a.Sector_Other;
-						}).entries(c.values);
-						d.properties._agencyList = d3.nest().key(function (a) {
-							var sumOfExports = parseFloat(a["Exports from Uganda 2014"])+parseFloat(a["Exports from Uganda 2015"])+parseFloat(a["Exports from Uganda 2016"])+parseFloat(a["Exports from Uganda 2017"])
-							return sumOfExports;
-						}).entries(c.values);
-						domain[0] = d.properties._agencyList < domain[0] ? d.properties._agencyList :
-						domain[
-							0];
-						domain[1] = d.properties._agencyList > domain[1] ? d.properties._agencyList :
-						domain[
-							1];
-						color.domain(domain);
-					}
-				})
-			}).style("fill", function (d) {
-				if(d.properties._agencyList){
-					return d.properties._sumOfExports ? color(d.properties._sumOfExports) : "#00000000"; //#3CB371
-				}
-				return "#00000000";
 			});
 			addLegend(domain, color);
-		}
-		d3.select("#d3-map-refresh").on("click", refreshMap);
-*/
+			console.log(domain);
+		})
 
 
 		function onlyUniqueObject(data) {
