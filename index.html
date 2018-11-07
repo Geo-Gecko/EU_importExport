@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>EU Demo</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="./css/leaflet.css" />
+  <link rel="stylesheet" href="css/mobirise-icons/mobirise-icons.css">
+		<!--[if lte IE 8]><link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.2/leaflet.ie.css" /><![endif]-->
+
+
+		<link href="./css/uganda.map.css" rel="Stylesheet" type="text/css">
+		<link rel="stylesheet" href="css/leaflet-sidebar.css">
+
+		<style>
+			body {
+				padding: 0;
+				margin: 0;
+			}
+
+			html, body, #map {
+				height: 100%;
+				font-size: 10pt;
+			}
+
+			.lorem {
+				font-style: italic;
+				color: #AAA;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- The Modal -->
+		<div id="myModal" class="modal">
+
+			<!-- Modal content -->
+			<div class="modal-content">
+				<div class="modal-header">
+					<span class="close">&times;</span>
+					<p id="modal-header" class="custom-count-header" style="font-size: 16px;">Modal Header</p>
+				</div>
+				<table id="modal-body" class="modal-body">
+				</table>
+			</div>
+
+		</div>
+
+		<div id="sidebar-left" class="sidebar collapsed">
+			<!-- Nav tabs -->
+			<div class="sidebar-tabs">
+				<ul role="tablist">
+					<li><a id="homeTab" href="#home" role="tab"><i class="fa fa-filter"></i></a></li>
+					<li><a id="profileTab" href="#profile" role="tab"><i class="fa fa-filter"></i></a></li>
+				</ul>
+
+				<ul role="tablist">
+					<li><a href="#settings" role="tab"><i class="fa fa-info"></i></a></li>
+				</ul>
+			</div>
+
+			<!-- Tab panes -->
+			<div class="sidebar-content">
+				<div class="sidebar-pane" id="home">
+					<h1 class="sidebar-header">
+						Filters
+						<span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+					</h1>
+
+					<!--<div class="menu-panel">
+						<p id="d3-map-refresh">Reset Filters</p>
+						<img src = "./css/reset.svg" style="border-radius: 50px;width:30px;height:30px; box-shadow: 0px 5px 5px grey;" title = "Reset Filters" id= "reset">
+					</div>-->
+					<div class="list-container">
+						<div class="col-md-12">
+							<p class="custom-list-header">Imports <i class="glyphicon glyphicon-chevron-down"></i></p>
+							<div id="agency-list" class="custom-list"></div>
+						</div>
+						<div class="col-md-12">
+							<p class="custom-list-header">Types of Imports <i class="glyphicon glyphicon-chevron-down"></i></p>
+							<div id="donor-list" class="custom-list" style="pointer-events: none; color: grey;" ></div>
+						</div>
+					</div>
+				</div>
+				<div class="sidebar-pane" id="profile">
+					<h1 class="sidebar-header">
+						Filters
+						<span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+					</h1>
+
+					<!--<div class="menu-panel">
+						<p id="d3-map-refresh">Reset Filters</p>
+						<img src = "./css/reset.svg" style="border-radius: 50px;width:30px;height:30px; box-shadow: 0px 5px 5px grey;" title = "Reset Filters" id= "reset">
+					</div>-->
+					<div class="list-container">
+						<div class="col-md-12">
+							<p class="custom-list-header">Export <i class="glyphicon glyphicon-chevron-down"></i></p>
+							<div id="sector-list" class="custom-list"></div>
+						</div>
+						<div class="col-md-12">
+							<p class="custom-list-header">Types of Exports <i class="glyphicon glyphicon-chevron-down"></i></p>
+							<div id="district-list" class="custom-list" style="pointer-events: none color: grey;"></div>
+						</div>
+					</div>
+				</div>
+				<div class="sidebar-pane" id="settings">
+					<h1 class="sidebar-header">
+						Portal Info
+						<span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+					</h1>
+
+					<div class="menu-panel">
+						<p>Cash Working Group 3W map - Data: April 2018</p>
+<!--						<img src = "./css/reset.svg" style="border-radius: 50px;width:30px;height:30px; box-shadow: 0px 5px 5px grey;" title = "Reset Filters" id= "reset">-->
+
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="sidebar-right" class="sidebar collapsed">
+			<!-- Nav tabs -->
+			<div class="sidebar-tabs">
+				<ul role="tablist">
+					<li><a href="#home1" role="tab"><i class="fa fa-bars"></i></a></li>
+				</ul>
+
+				<ul role="tablist">
+<!--					<li><a href="#settings1" role="tab"><i class="fa fa-gear"></i></a></li>-->
+				</ul>
+			</div>
+
+			<!-- Tab panes -->
+			<div class="sidebar-content">
+				<div class="sidebar-pane" id="home1">
+					<h1 class="sidebar-header">
+						Results
+						<span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+					</h1>
+				</div>
+			</div>
+		</div>
+
+		<div id="d3-map-container" class="sidebar-map">
+			<div id="d3-map-wrapper"></div></div>
+
+
+		<script src="./js/leaflet.js"></script>
+
+		<script src="js/leaflet-sidebar.js"></script>
+		<script src="js/jquery.min.js"></script>
+		<script src="js/jquery-ui.min.js"></script>
+		<link href="css/jquery-ui.css" rel="stylesheet"/>
+
+		<script src="./js/queue.v1.min.js"></script>
+
+		<script src="./js/d3.v3.min.js"></script>
+		<script src="./js/L.D3SvgOverlay.min.js"></script>
+
+		<script src="./js/uganda.map.js"></script>
+
+	</body>
+</html>
