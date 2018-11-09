@@ -27,6 +27,7 @@
 
 
 
+	var whichPage = "imports";
 	var global = {};
 	global.selectedDistrict = []; // name
 	global.selectedSector = []; // ID
@@ -66,6 +67,14 @@
 		global.selectedIp = [];
 		global.selectedOp = [];
 
+		d3.selectAll(".d3-active").classed('d3-active', false);
+		d3.select("#district-list").selectAll("p").style("background", "transparent");
+		d3.select("#sector-list").selectAll("p").style("background", "transparent");
+		d3.select("#actor-type-list").selectAll("p").style("background", "transparent");
+		d3.select("#agency-list").selectAll("p").style("background", "transparent");
+		d3.select("#donor-list").selectAll("p").style("background", "transparent");
+
+
 		d3.select("#partner-list-count").text(0);
 		d3.select("#sector-list-count").text(0);
 		d3.select("#parish-list-count").text(0);
@@ -79,18 +88,17 @@
 
 	}
 
-	function addLegend(domain, color) {
+	function addLegend(domain, color, title) {
 		var N = 4;
 		var step = Math.round((domain[1] - domain[0]) / N);
 		var array = [domain[0] + Math.round(step - step / 2), domain[0] + Math.round(step * 2 - step / 2), domain[0] + Math.round(step * 3 - step / 2), domain[0] + Math.round(step * 4 - step / 2)];
 		var arrayLabel = [myFormat(domain[0]).toString() + " - " + (myFormat(domain[0] + step)).toString(), (myFormat(domain[0] + step + 1)).toString() + " - " + (myFormat(domain[0] + step * 2)).toString(), (myFormat(domain[0] + step * 2 + 1)).toString() + " - " + (myFormat(domain[0] + step * 3)).toString(), (myFormat(domain[0] + step * 3 + 1)).toString() + " - " + myFormat(domain[1]).toString()];
 
 		d3.select("#legend").selectAll("svg").remove();
-
 		var legend = d3.selectAll('.c3-legend-item');
 		var legendSvg = d3.select('#legend')
 		.append('svg')
-//		.attr('width', "auto")
+		//		.attr('width', "auto")
 		.attr('height', 150);
 		legend.each(function () {
 			svg.node().appendChild(this);
@@ -131,7 +139,7 @@
 		});
 
 		legendSvg.selectAll('.legend-title')
-			.data(["Legend: Amounts in Euros"])
+			.data([title])
 			.enter()
 			.append('text')
 			.attr('class', 'legend-title')
@@ -149,13 +157,6 @@
 		if (error) {
 			throw error;
 		};
-		ugandaGeoJson.features.map(function (d) {
-			//			console.log(d);
-			//			d.properties.CNTRY_NAME = d.properties.dist;
-		});
-
-		//			console.log(relationship);
-		//			console.log(sector);
 
 		$(".custom-list-header").click(function () {
 			$(".custom-list-header").siblings(".custom-list").addClass('collapsed');
@@ -271,18 +272,49 @@
 		d3.select(".list-container").style("height", h - 0 + "px")
 
 		var map = new L.Map("d3-map-container", {
-			center: [50.03, 5.85],
+			center: [53.03, 5.85],
 			zoom: 4,
 			zoomControl: true
 		});
+		
+		var legend = L.control({
+					position:'topleft'
+				});//.addTo(map);
+		
+		legend.onAdd = function(map){
+			var div = L.DomUtil.create('div', 'myclass');
+			div.innerHTML= "<div id='legend'></div>";
+			return div;
+		}
+		legend.addTo(map);
 
-		var logo = L.control({position: 'bottomleft'});
+
+		var logo = L.control({position: 'bottomright'});
 		logo.onAdd = function(map){
 			var div = L.DomUtil.create('div', 'myclass');
-			div.innerHTML= "<div id='legend'></div><a href='https://geogecko.com/' target='_blank'><img style='right: 0; width: 12em' src='css/logo-full-no-text.svg' alt='GeoGecko'></a>";
+			div.innerHTML= "<img style='right: 0; width: 12em' src='css/EU_1.png' alt='EU - UG'>";
 			return div;
 		}
 		logo.addTo(map);
+
+		var flags = L.control({position: 'bottomleft'});
+		flags.onAdd = function(map){
+			var div = L.DomUtil.create('div', 'myclass');
+			div.innerHTML= "";
+			return div;
+		}
+		flags.addTo(map);
+
+		var title = L.control({position: 'topright'});
+		title.onAdd = function(map) {
+			this._div = L.DomUtil.create('div', 'ctl title');
+			this.update();
+			return this._div;
+		};
+		title.update = function(props) {
+			this._div.innerHTML = "Uganda <br> Trade";
+		};
+//		title.addTo(map);
 
 		var _3w_attrib = 'Created by <a href="http://www.geogecko.com">Geo Gecko</a> and © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, Powered by <a href="https://d3js.org/">d3</a>';
 		var basemap = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_nolabels/{z}/{x}/{y}{r}.png', {
@@ -296,16 +328,6 @@
 
 		sidebar.open("home");
 
-//		var sidebar1 = L.control.sidebar('sidebar-right', {position: "right"}).addTo(map);
-
-		//		map.bounds = [],
-		//			map.setMaxBounds([
-		//			[4.5,29.5],
-		//			[-1.5,34.5]
-		//		]);
-		//		map.options.maxZoom=12;
-		//		map.options.minZoom=7;
-		var whichPage = "imports";
 
 		var ugandaPath;
 		var domain = [+Infinity, -Infinity];
@@ -315,7 +337,7 @@
 		var height = wrapper.node().offsetHeight || 480;
 		var color = d3.scale.linear().domain(domain) //http://bl.ocks.org/jfreyre/b1882159636cc9e1283a
 		.interpolate(d3.interpolateHcl)
-		.range([d3.rgb("#e2f7d4"), d3.rgb('#004529')]); //#f597aa #a02842
+		.range([d3.rgb("#a7c0f2"), d3.rgb('#003399')]); //#f597aa #a02842
 		var tooltip = d3.select(map.getPanes().overlayPane)
 		.append("div")
 		.attr("class", "d3-tooltip d3-hide");
@@ -381,7 +403,8 @@
 					return parseInt(d);
 				});
 				var str = "<tr><span type='button' class='close' onclick='$(this).parent().hide();'>X</span></tr>" +
-					"<th><br/></th><tr><th>District:</th> <th style='right: 0;'><b>" + d.properties.CNTRY_NAME + "</b></th></tr>";
+					"<th><br/></th><tr><th>District:</th> <th style='right: 0;'><b>" + d.properties.CNTRY_NAME + "</b></th></tr>"+
+					"<th><br/></th><br/><tr><th style='left: 50%;'><b>Trade Value 2014 - 2017</b></th></tr>";
 				if (d.properties._sectorList && d.properties._agencyList) {
 
 					var agencyListAbb = d3.values(d.properties._agencyList).map(function (d) {
@@ -396,9 +419,9 @@
 						tooltipList = tooltipList + ("<p>" + agencyListAbb[i][0] + "</p>");
 						i++
 					}
-					
-					str = str + "<br><tr><th>Sum of Imports:</th> <th><b>" + myFormat(d.properties._sumOfImports) + " Euros</b></th></tr>" +
-						"<br><tr><th>Sum of Exports:</th> <th><b>" + myFormat(d.properties._sumOfExports) + " Euros</b></th></tr></div>";
+
+					str = str + "<br><tr><th>UG Imports:</th> <th><b>" + myFormat(d.properties._sumOfImports) + " Euros</b></th></tr>" +
+						"<br><tr><th>UG Exports:</th> <th><b>" + myFormat(d.properties._sumOfExports) + " Euros</b></th></tr></div>";
 				}
 				tooltip.html(str);
 
@@ -457,19 +480,19 @@
 			ugandaPath.exit().remove();
 		});
 
+
 		countries = ugandaGeoJson.features;
 		countriesOverlay.addTo(map);
 
-		addLegend(domain, color);
+		addLegend(domain, color, "UG imports 2014 - 2017");
 
 
-		var imports = d3.select("#profileTab");
-		var exports = d3.select("#homeTab");
+		var imports = d3.select("#homeTab");
+		var exports = d3.select("#profileTab");
 
 		imports.on('click', function(){
-			whichPage = "imports";
+			whichPage = "exports";
 			refreshCounts();
-			updateLeftPanel(districtList, sectorList, agencyList, donorList, actorTypeList, dataset);
 			domain = [+Infinity, -Infinity];
 			ugandaPath.each(function (d) {
 				datasetNest.map(function (c) {
@@ -511,15 +534,14 @@
 				.style("fill", function (d) {
 				return d.properties._sumOfImports ? color(d.properties._sumOfImports) : "#00000000"; //#3CB371
 			});
-			
-			addLegend(domain, color);
+
+			addLegend(domain, color, "UG imports 2014 - 2017");
 		})
 
 
 		exports.on('click', function(){
-			whichPage = "exports";
+			whichPage = "imports";
 			refreshCounts();
-			updateLeftPanel(districtList, sectorList, agencyList, donorList, actorTypeList, dataset);
 			domain = [+Infinity, -Infinity];
 			ugandaPath.each(function (d) {
 				datasetNest.map(function (c) {
@@ -555,14 +577,14 @@
 						domain[
 							1];
 						color.domain(domain);
-						
+
 					}
 				});
 			})
 				.style("fill", function (d) {
 				return d.properties._sumOfExports ? color(d.properties._sumOfExports) : "#00000000"; //#3CB371
 			});
-			addLegend(domain, color);
+			addLegend(domain, color, "UG exports 2014 - 2017");
 			console.log(domain);
 		})
 
@@ -728,8 +750,16 @@
 					return d.properties._currentSum ? color(d.properties._currentSum) : "#00000000"; //#3CB371
 				});
 			}
+			var list = "";
+			var i = 0;
+			while(i<selectedVariable.length){
+				list = list + selectedVariable[i].substr(selectedVariable[i].length - 4) + " | ";
+				i++
+			}
 
-			addLegend(domain, color);
+			var title = "UG " + whichPage + " " + list;
+
+			addLegend(domain, color, title);
 
 			var districtList = null;
 			if (flag !== "district") {
@@ -765,7 +795,6 @@
 					}
 				}).sortKeys(d3.ascending).entries(selectedDataset);
 			}
-
 
 			// global.selectedDistrict = districtList;
 			updateLeftPanel(districtList, sectorList, agencyList, donorList, actorTypeList, dataset);
@@ -817,15 +846,15 @@
 
 		}
 
-		
+
 
 		function updateLeftPanel(districtList, sectorList, agencyList, donorList, actorTypeList, dataset) {
-//			if (global.currentEvent !== "district") {
-//				districtList.map(function (a) {
-//					d3.select(".district-" + a.key.replaceAll('[ ]', "_")).style("opacity", 1);
-//					d3.select(".district-" + a.key.toLowerCase().replaceAll('[ ]', "-")).style("opacity", 1);
-//				});
-//			}
+			//			if (global.currentEvent !== "district") {
+			//				districtList.map(function (a) {
+			//					d3.select(".district-" + a.key.replaceAll('[ ]', "_")).style("opacity", 1);
+			//					d3.select(".district-" + a.key.toLowerCase().replaceAll('[ ]', "-")).style("opacity", 1);
+			//				});
+			//			}
 
 			if (districtList) {
 				d3.select("#district-count").text(districtList.length);
@@ -838,7 +867,7 @@
 					.on("click", function (c) {
 					d3.selectAll(".labels").style("opacity", opacity);
 					var needRemove = $(d3.select(this).node()).hasClass("d3-active"); //d3.select(this).attr("class");//d3-active
-					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" : "#85bb65");
+					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" : "#003399");
 					global.currentEvent = "district";
 					myFilter(c, global.currentEvent, needRemove);
 
@@ -867,59 +896,59 @@
 					return d.key.replace(/\s/g,'');
 				})
 					.text(function (d) {
-					//return d.key;
+					return d.key;
 				})
 				// .style("background", "transparent")
 					.on("click", function (c) {
 					// d3.select(this.parentNode).selectAll("p").style("background", "transparent");
 					// d3.select(this).style("background", "#8cc4d3");
 					var needRemove = $(d3.select(this).node()).hasClass("d3-active"); //d3.select(this).attr("class");//d3-active
-					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" :"#85bb65");
+					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" :"#003399");
 					global.currentEvent = "sector";
 					myFilter(c, global.currentEvent, needRemove);
 					// myFilterBySector(c, needRemove);
 					if(global.selectedSector.length === 0){
 						ugandaPath.each(function (d) {
-				datasetNest.map(function (c) {
-					if (c.key === d.properties.CNTRY_NAME) {
-						d.properties._sectorList = d3.nest().key(function (a) {
-							return a.Sector;
-						}).entries(c.values);
-						var sumOfExports = 0;
-						var sumOfImports = 0;
-						d.properties._agencyList = d3.nest().key(function (a) {
-							sumOfExports = parseFloat(a["Exports from Uganda 2014"])+parseFloat(a["Exports from Uganda 2015"])+parseFloat(a["Exports from Uganda 2016"])+parseFloat(a["Exports from Uganda 2017"])
-							sumOfImports = parseFloat(a["Imports into Uganda 2014"])+parseFloat(a["Imports into Uganda 2015"])+parseFloat(a["Imports into Uganda 2016"])+parseFloat(a["Imports into Uganda 2017"])
-							return;
-						}).entries(c.values);
+							datasetNest.map(function (c) {
+								if (c.key === d.properties.CNTRY_NAME) {
+									d.properties._sectorList = d3.nest().key(function (a) {
+										return a.Sector;
+									}).entries(c.values);
+									var sumOfExports = 0;
+									var sumOfImports = 0;
+									d.properties._agencyList = d3.nest().key(function (a) {
+										sumOfExports = parseFloat(a["Exports from Uganda 2014"])+parseFloat(a["Exports from Uganda 2015"])+parseFloat(a["Exports from Uganda 2016"])+parseFloat(a["Exports from Uganda 2017"])
+										sumOfImports = parseFloat(a["Imports into Uganda 2014"])+parseFloat(a["Imports into Uganda 2015"])+parseFloat(a["Imports into Uganda 2016"])+parseFloat(a["Imports into Uganda 2017"])
+										return;
+									}).entries(c.values);
 
 
-						d.properties["Imports into Uganda 2014"] = parseFloat(c.values[0]["Imports into Uganda 2014"]);
-						d.properties["Imports into Uganda 2015"] = parseFloat(c.values[0]["Imports into Uganda 2015"]);
-						d.properties["Imports into Uganda 2016"] = parseFloat(c.values[0]["Imports into Uganda 2016"]);
-						d.properties["Imports into Uganda 2017"] = parseFloat(c.values[0]["Imports into Uganda 2017"]);
-						d.properties["Exports from Uganda 2014"] = parseFloat(c.values[0]["Exports from Uganda 2014"]);
-						d.properties["Exports from Uganda 2015"] = parseFloat(c.values[0]["Exports from Uganda 2015"]);
-						d.properties["Exports from Uganda 2016"] = parseFloat(c.values[0]["Exports from Uganda 2016"]);
-						d.properties["Exports from Uganda 2017"] = parseFloat(c.values[0]["Exports from Uganda 2017"]);
+									d.properties["Imports into Uganda 2014"] = parseFloat(c.values[0]["Imports into Uganda 2014"]);
+									d.properties["Imports into Uganda 2015"] = parseFloat(c.values[0]["Imports into Uganda 2015"]);
+									d.properties["Imports into Uganda 2016"] = parseFloat(c.values[0]["Imports into Uganda 2016"]);
+									d.properties["Imports into Uganda 2017"] = parseFloat(c.values[0]["Imports into Uganda 2017"]);
+									d.properties["Exports from Uganda 2014"] = parseFloat(c.values[0]["Exports from Uganda 2014"]);
+									d.properties["Exports from Uganda 2015"] = parseFloat(c.values[0]["Exports from Uganda 2015"]);
+									d.properties["Exports from Uganda 2016"] = parseFloat(c.values[0]["Exports from Uganda 2016"]);
+									d.properties["Exports from Uganda 2017"] = parseFloat(c.values[0]["Exports from Uganda 2017"]);
 
-						d.properties._sumOfExports = sumOfExports;
-						d.properties._sumOfImports = sumOfImports;
+									d.properties._sumOfExports = sumOfExports;
+									d.properties._sumOfImports = sumOfImports;
 
-						domain[0] = sumOfExports < domain[0] ? sumOfExports :
-						domain[
-							0];
-						domain[1] = sumOfExports > domain[1] ? sumOfExports :
-						domain[
-							1];
-						color.domain(domain);
-					}
-				});
-			})
-				.style("fill", function (d) {
-				return d.properties._sumOfExports ? color(d.properties._sumOfExports) : "#00000000"; //#3CB371
-			});
-						addLegend(domain, color);
+									domain[0] = sumOfExports < domain[0] ? sumOfExports :
+									domain[
+										0];
+									domain[1] = sumOfExports > domain[1] ? sumOfExports :
+									domain[
+										1];
+									color.domain(domain);
+								}
+							});
+						})
+							.style("fill", function (d) {
+							return d.properties._sumOfExports ? color(d.properties._sumOfExports) : "#00000000"; //#3CB371
+						});
+						addLegend(domain, color, "UG exports 2014 - 2017");
 					}
 				});
 				_sectorList //.transition().duration(duration)
@@ -941,53 +970,53 @@
 					.on("click", function (c) {
 
 					var needRemove = $(d3.select(this).node()).hasClass("d3-active"); //d3.select(this).attr("class");//d3-active
-					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" : "#85bb65");
+					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" : "#003399");
 					// myFilterByAgency(c, needRemove);
 					global.currentEvent = "agency"
 					myFilter(c, global.currentEvent, needRemove);
 					if(global.selectedAgency.length === 0){
 						ugandaPath.each(function (d) {
-				datasetNest.map(function (c) {
-					if (c.key === d.properties.CNTRY_NAME) {
-						d.properties._sectorList = d3.nest().key(function (a) {
-							return a.Sector;
-						}).entries(c.values);
-						var sumOfExports = 0;
-						var sumOfImports = 0;
-						d.properties._agencyList = d3.nest().key(function (a) {
-							sumOfExports = parseFloat(a["Exports from Uganda 2014"])+parseFloat(a["Exports from Uganda 2015"])+parseFloat(a["Exports from Uganda 2016"])+parseFloat(a["Exports from Uganda 2017"])
-							sumOfImports = parseFloat(a["Imports into Uganda 2014"])+parseFloat(a["Imports into Uganda 2015"])+parseFloat(a["Imports into Uganda 2016"])+parseFloat(a["Imports into Uganda 2017"])
-							return;
-						}).entries(c.values);
+							datasetNest.map(function (c) {
+								if (c.key === d.properties.CNTRY_NAME) {
+									d.properties._sectorList = d3.nest().key(function (a) {
+										return a.Sector;
+									}).entries(c.values);
+									var sumOfExports = 0;
+									var sumOfImports = 0;
+									d.properties._agencyList = d3.nest().key(function (a) {
+										sumOfExports = parseFloat(a["Exports from Uganda 2014"])+parseFloat(a["Exports from Uganda 2015"])+parseFloat(a["Exports from Uganda 2016"])+parseFloat(a["Exports from Uganda 2017"])
+										sumOfImports = parseFloat(a["Imports into Uganda 2014"])+parseFloat(a["Imports into Uganda 2015"])+parseFloat(a["Imports into Uganda 2016"])+parseFloat(a["Imports into Uganda 2017"])
+										return;
+									}).entries(c.values);
 
 
-						d.properties["Imports into Uganda 2014"] = parseFloat(c.values[0]["Imports into Uganda 2014"]);
-						d.properties["Imports into Uganda 2015"] = parseFloat(c.values[0]["Imports into Uganda 2015"]);
-						d.properties["Imports into Uganda 2016"] = parseFloat(c.values[0]["Imports into Uganda 2016"]);
-						d.properties["Imports into Uganda 2017"] = parseFloat(c.values[0]["Imports into Uganda 2017"]);
-						d.properties["Exports from Uganda 2014"] = parseFloat(c.values[0]["Exports from Uganda 2014"]);
-						d.properties["Exports from Uganda 2015"] = parseFloat(c.values[0]["Exports from Uganda 2015"]);
-						d.properties["Exports from Uganda 2016"] = parseFloat(c.values[0]["Exports from Uganda 2016"]);
-						d.properties["Exports from Uganda 2017"] = parseFloat(c.values[0]["Exports from Uganda 2017"]);
+									d.properties["Imports into Uganda 2014"] = parseFloat(c.values[0]["Imports into Uganda 2014"]);
+									d.properties["Imports into Uganda 2015"] = parseFloat(c.values[0]["Imports into Uganda 2015"]);
+									d.properties["Imports into Uganda 2016"] = parseFloat(c.values[0]["Imports into Uganda 2016"]);
+									d.properties["Imports into Uganda 2017"] = parseFloat(c.values[0]["Imports into Uganda 2017"]);
+									d.properties["Exports from Uganda 2014"] = parseFloat(c.values[0]["Exports from Uganda 2014"]);
+									d.properties["Exports from Uganda 2015"] = parseFloat(c.values[0]["Exports from Uganda 2015"]);
+									d.properties["Exports from Uganda 2016"] = parseFloat(c.values[0]["Exports from Uganda 2016"]);
+									d.properties["Exports from Uganda 2017"] = parseFloat(c.values[0]["Exports from Uganda 2017"]);
 
-						d.properties._sumOfExports = sumOfExports;
-						d.properties._sumOfImports = sumOfImports;
+									d.properties._sumOfExports = sumOfExports;
+									d.properties._sumOfImports = sumOfImports;
 
-						domain[0] = sumOfImports < domain[0] ? sumOfImports :
-						domain[
-							0];
-						domain[1] = sumOfImports > domain[1] ? sumOfImports :
-						domain[
-							1];
-						color.domain(domain);
-					}
-				});
-			})
-				.style("fill", function (d) {
-				return d.properties._sumOfImports ? color(d.properties._sumOfImports) : "#00000000"; //#3CB371
-			});
-						
-						addLegend(domain, color);
+									domain[0] = sumOfImports < domain[0] ? sumOfImports :
+									domain[
+										0];
+									domain[1] = sumOfImports > domain[1] ? sumOfImports :
+									domain[
+										1];
+									color.domain(domain);
+								}
+							});
+						})
+							.style("fill", function (d) {
+							return d.properties._sumOfImports ? color(d.properties._sumOfImports) : "#00000000"; //#3CB371
+						});
+
+						addLegend(domain, color, "UG imports 2014 - 2017");
 					}
 
 
@@ -1009,7 +1038,7 @@
 				})
 					.on("click", function (c) {
 					var needRemove = $(d3.select(this).node()).hasClass("d3-active"); //d3.select(this).attr("class");//d3-active
-					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" :"#85bb65");
+					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" :"#003399");
 					// myFilterByAgency(c, needRemove);
 					global.currentEvent = "donor"
 					myFilter(c, global.currentEvent, needRemove);
@@ -1034,7 +1063,7 @@
 				// .style("background", "transparent")
 					.on("click", function (c) {
 					var needRemove = $(d3.select(this).node()).hasClass("d3-active"); //d3.select(this).attr("class");//d3-active
-					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" :"#85bb65");
+					d3.select(this).classed("d3-active", !needRemove).style("background", needRemove ? "transparent" :"#003399");
 					// myFilterByAgency(c, needRemove);
 					global.currentEvent = "actor-type"
 					myFilter(c, global.currentEvent, needRemove);
