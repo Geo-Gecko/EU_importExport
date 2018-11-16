@@ -274,19 +274,26 @@
 		var map = new L.Map("d3-map-container", {
 			center: [53.03, 5.85],
 			zoom: 4,
-			zoomControl: true
+			zoomControl: false
 		});
-		
+
 		var legend = L.control({
-					position:'topleft'
-				});//.addTo(map);
-		
+			position:'topleft'
+		});//.addTo(map);
+
 		legend.onAdd = function(map){
 			var div = L.DomUtil.create('div', 'myclass');
 			div.innerHTML= "<div id='legend'></div>";
 			return div;
 		}
 		legend.addTo(map);
+
+		var htmlObject = legend.getContainer();
+		var a = document.getElementById('legendBox');
+		function setParent(el, newParent){
+			newParent.appendChild(el);
+		}
+		setParent(htmlObject, a);
 
 
 		var logo = L.control({position: 'bottomright'});
@@ -314,7 +321,7 @@
 		title.update = function(props) {
 			this._div.innerHTML = "Uganda <br> Trade";
 		};
-//		title.addTo(map);
+		//		title.addTo(map);
 
 		var _3w_attrib = 'Created by <a href="http://www.geogecko.com">Geo Gecko</a> and © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, Powered by <a href="https://d3js.org/">d3</a>';
 		var basemap = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_nolabels/{z}/{x}/{y}{r}.png', {
@@ -363,11 +370,13 @@
 				d.properties.centroid = projection(d3.geo.centroid(d));
 				datasetNest.map(function (c) {
 					if (c.key === d.properties.CNTRY_NAME) {
+						console.log(c);
 						d.properties._sectorList = d3.nest().key(function (a) {
 							return a.Sector;
 						}).entries(c.values);
 						var sumOfExports = 0;
 						var sumOfImports = 0;
+						d.properties.Abb = c.values[0].Abb;
 						d.properties._agencyList = d3.nest().key(function (a) {
 							sumOfExports = parseFloat(a["Exports from Uganda 2014"])+parseFloat(a["Exports from Uganda 2015"])+parseFloat(a["Exports from Uganda 2016"])+parseFloat(a["Exports from Uganda 2017"])
 							sumOfImports = parseFloat(a["Imports into Uganda 2014"])+parseFloat(a["Imports into Uganda 2015"])+parseFloat(a["Imports into Uganda 2016"])+parseFloat(a["Imports into Uganda 2017"])
@@ -403,7 +412,7 @@
 					return parseInt(d);
 				});
 				var str = "<tr><span type='button' class='close' onclick='$(this).parent().hide();'>X</span></tr>" +
-					"<th><br/></th><tr><th>District:</th> <th style='right: 0;'><b>" + d.properties.CNTRY_NAME + "</b></th></tr>"+
+					"<th><br/></th><tr><th>Country:</th> <th style='right: 0;'><b>" + d.properties.CNTRY_NAME + "</b></th></tr>"+
 					"<th><br/></th><br/><tr><th style='left: 50%;'><b>Trade Value 2014 - 2017</b></th></tr>";
 				if (d.properties._sectorList && d.properties._agencyList) {
 
@@ -419,9 +428,8 @@
 						tooltipList = tooltipList + ("<p>" + agencyListAbb[i][0] + "</p>");
 						i++
 					}
-
-					str = str + "<br><tr><th>UG Imports:</th> <th><b>" + myFormat(d.properties._sumOfImports) + " Euros</b></th></tr>" +
-						"<br><tr><th>UG Exports:</th> <th><b>" + myFormat(d.properties._sumOfExports) + " Euros</b></th></tr></div>";
+					str = str + "<br><tr><th>UG <- " + d.properties.Abb + ":</th> <th><b>" + myFormat(d.properties._sumOfImports) + " Euros</b></th></tr>" +
+						"<br><tr><th>UG -> " + d.properties.Abb + ":</th> <th><b>" + myFormat(d.properties._sumOfExports) + " Euros</b></th></tr></div>";
 				}
 				tooltip.html(str);
 
@@ -491,7 +499,7 @@
 		var exports = d3.select("#profileTab");
 
 		imports.on('click', function(){
-			whichPage = "exports";
+			whichPage = "imports";
 			refreshCounts();
 			domain = [+Infinity, -Infinity];
 			ugandaPath.each(function (d) {
@@ -540,7 +548,7 @@
 
 
 		exports.on('click', function(){
-			whichPage = "imports";
+			whichPage = "exports";
 			refreshCounts();
 			domain = [+Infinity, -Infinity];
 			ugandaPath.each(function (d) {
@@ -585,7 +593,6 @@
 				return d.properties._sumOfExports ? color(d.properties._sumOfExports) : "#00000000"; //#3CB371
 			});
 			addLegend(domain, color, "UG exports 2014 - 2017");
-			console.log(domain);
 		})
 
 
@@ -756,6 +763,9 @@
 				list = list + selectedVariable[i].substr(selectedVariable[i].length - 4) + " | ";
 				i++
 			}
+
+			
+			console.log(whichPage);
 
 			var title = "UG " + whichPage + " " + list;
 

@@ -253,7 +253,7 @@ div.d3-tooltip p {
 }
 
 .list-container {
-	width: 95%;
+	width: 75%;
 	overflow-y: auto;
 	height: auto !important;
 	background: #F0F0EE;

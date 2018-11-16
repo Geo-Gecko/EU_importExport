@@ -2,8 +2,8 @@
 	position: absolute;
 	top: 0;
 	bottom: 0;
-	height: 25%;
-	width: 100%;
+	height: 35%;
+	width: 30% !important;
 	overflow: hidden;
 	z-index: 2000;
 	font-family: Roboto, sans-serif;
