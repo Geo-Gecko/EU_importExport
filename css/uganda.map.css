@@ -209,7 +209,7 @@ div.d3-tooltip p {
 }
 .custom-list {
 	text-align: left;
-	height: 10vh !important;
+	height: auto !important;
 	margin: 0;
 	padding: 6px 15px;
 	top: 20px;
